@@ -10,11 +10,33 @@ import {
 } from "@/components/ui/dropdown-menu";
 import supabase from "@/lib/supabase";
 import { ChartCandlestick } from "lucide-react";
+import { useEffect } from "react";
+
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
-
+import { useState } from "react";
 export default function Navbar() {
+  const [name, setName] = useState<string | null>(null);
   const navigate = useNavigate();
+  const getUserName = async () => {
+    const userId = await supabase.auth.getUser();
+    const { data, error } = await supabase
+      .from("users")
+      .select("name")
+      .eq("id", userId.data.user?.id)
+      .single();
+    if (error) {
+      console.error("Error fetching user name:", error.message);
+    }
+    if (data) {
+      setName(data.name);
+      console.log("User name:", data.name);
+    }
+  };
+
+  useEffect(() => {
+    getUserName();
+  }, []);
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
     if (error) {
@@ -48,7 +70,7 @@ export default function Navbar() {
             </Avatar>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-56 c">
-            <DropdownMenuLabel>Hadi Nur Muhammad</DropdownMenuLabel>
+            <DropdownMenuLabel>{name}</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
               <DropdownMenuItem className="cursor-pointer">

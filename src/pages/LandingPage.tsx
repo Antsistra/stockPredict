@@ -20,7 +20,7 @@ export default function LandingPage() {
           StockPredict
         </a>
         <Link to="/login">
-          <Button>Login</Button>
+          <Button className="cursor-pointer">Login</Button>
         </Link>
       </nav>
       <section id="jumbotron" className="bg-neutral-background">
@@ -41,8 +41,9 @@ export default function LandingPage() {
               stay ahead in the stock market.
             </h5>
             <div className="flex gap-x-4">
-              <Button>Get Started</Button>
-              <Button>Learn More</Button>
+              <Link to="/login">
+                <Button className="cursor-pointer">Get Started</Button>
+              </Link>
             </div>
           </div>
         </div>

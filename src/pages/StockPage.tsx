@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import TradingviewWidget from "@/components/fragments/TradingviewWidget";
 import Navbar from "@/components/layouts/navbar";
 import { Button } from "@/components/ui/button";
@@ -12,94 +12,11 @@ import {
 } from "@/components/ui/card";
 import { Link } from "react-router-dom";
 import { Progress } from "@/components/ui/progress";
-const BMRI = {
-  language: "en-US",
-  region: "US",
-  quoteType: "EQUITY",
-  typeDisp: "Equity",
-  quoteSourceName: "Delayed Quote",
-  triggerable: false,
-  customPriceAlertConfidence: "LOW",
-  currency: "IDR",
-  regularMarketChangePercent: 0.9708738,
-  regularMarketPrice: 5200,
-  marketState: "CLOSED",
-  shortName: "Bank Mandiri (Persero) Tbk",
-  longName: "PT Bank Mandiri (Persero) Tbk",
-  corporateActions: [],
-  regularMarketTime: "2025-03-27T09:14:44.000Z",
-  exchange: "JKT",
-  messageBoardId: "finmb_8387507",
-  exchangeTimezoneName: "Asia/Jakarta",
-  exchangeTimezoneShortName: "WIB",
-  gmtOffSetMilliseconds: 25200000,
-  market: "id_market",
-  esgPopulated: false,
-  earningsTimestamp: "2025-01-22T10:59:00.000Z",
-  earningsTimestampStart: "2025-04-28T10:59:00.000Z",
-  earningsTimestampEnd: "2025-05-02T12:00:00.000Z",
-  earningsCallTimestampStart: 1737507600,
-  earningsCallTimestampEnd: 1737507600,
-  isEarningsDateEstimate: true,
-  trailingAnnualDividendRate: 0,
-  trailingPE: 8.70322,
-  dividendRate: 353.96,
-  trailingAnnualDividendYield: 0,
-  dividendYield: 7.56,
-  epsTrailingTwelveMonths: 597.48,
-  epsForward: 663.48,
-  epsCurrentYear: 618.5187,
-  priceEpsCurrentYear: 8.407184,
-  sharesOutstanding: 93333299200,
-  bookValue: 3040.676,
-  fiftyDayAverage: 5200.7,
-  fiftyDayAverageChange: -0.7001953,
-  fiftyDayAverageChangePercent: -0.00013463481,
-  twoHundredDayAverage: 6217.675,
-  twoHundredDayAverageChange: -1017.6748,
-  twoHundredDayAverageChangePercent: -0.1636745,
-  marketCap: 485333149941760,
-  forwardPE: 7.8374634,
-  priceToBook: 1.7101461,
-  sourceInterval: 10,
-  exchangeDataDelayedBy: 10,
-  averageAnalystRating: "1.6 - Buy",
-  tradeable: false,
-  cryptoTradeable: false,
-  hasPrePostMarketData: false,
-  firstTradeDateMilliseconds: "2003-07-14T02:00:00.000Z",
-  priceHint: 2,
-  regularMarketChange: 50,
-  regularMarketDayHigh: 5250,
-  regularMarketDayRange: {
-    low: 5050,
-    high: 5250,
-  },
-  regularMarketDayLow: 5050,
-  regularMarketVolume: 301025300,
-  regularMarketPreviousClose: 5150,
-  bid: 5200,
-  ask: 5225,
-  bidSize: 0,
-  askSize: 0,
-  fullExchangeName: "Jakarta",
-  financialCurrency: "IDR",
-  regularMarketOpen: 5150,
-  averageDailyVolume3Month: 196586437,
-  averageDailyVolume10Day: 297852980,
-  fiftyTwoWeekLowChange: 950,
-  fiftyTwoWeekLowChangePercent: 0.22352941,
-  fiftyTwoWeekRange: {
-    low: 4250,
-    high: 7550,
-  },
-  fiftyTwoWeekHighChange: -2350,
-  fiftyTwoWeekHighChangePercent: -0.3112583,
-  fiftyTwoWeekLow: 4250,
-  fiftyTwoWeekHigh: 7550,
-  fiftyTwoWeekChangePercent: -28.27586,
-  symbol: "BMRI.JK",
-};
+import { axiosInstance } from "@/lib/axios";
+import { useParams } from "react-router-dom";
+import supabase from "@/lib/supabase";
+import { useState } from "react";
+import Swal from "sweetalert2";
 
 const News = [
   {
@@ -134,6 +51,7 @@ const News = [
     ],
   },
 ];
+
 function formatMarketCap(value: number): string {
   if (value >= 1e12) {
     return `${(value / 1e12).toFixed(2)} T`;
@@ -142,9 +60,148 @@ function formatMarketCap(value: number): string {
   }
   return value.toString();
 }
-import { useParams } from "react-router-dom";
+
 export default function StockPage() {
+  const [stockData, setStockData] = useState<any>(null);
+  const [predictionData, setPredictionData] = useState<any>();
+  const [loading, setLoading] = useState(false);
+  const [stocks, setStocks] = useState<boolean | null>(null);
   const { symbol } = useParams<{ symbol: string }>();
+
+  const fetchNews = async () => {
+    setLoading(true);
+    try {
+      const response = await axiosInstance.get(`/api/stock/news/${symbol}.JK`);
+      console.log("News data:", response.data);
+    } catch (error) {
+      console.log("Error fetching news data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchDetails = async () => {
+    setLoading(true);
+    try {
+      const response = await axiosInstance.get(`/api/stocks/details/${symbol}`);
+      setStockData(response.data);
+      console.log("Stock data:", response.data);
+    } catch (error) {
+      console.log("Error fetching stock data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  const fetchPrediction = async () => {
+    try {
+      const response = await axiosInstance.get(`/api/prediction/${symbol}`);
+
+      setPredictionData(response.data);
+      console.log("Prediction data:", predictionData);
+    } catch (error) {
+      console.log("Error fetching prediction data:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchPrediction();
+    fetchDetails();
+    fetchNews();
+  }, [symbol]);
+  const handleAddToWatchlist = async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.from("watchlist").insert({
+        stock_symbol: symbol,
+      });
+      if (error) {
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: error.message,
+          confirmButtonText: "OK",
+        });
+        console.error("Error adding to watchlist:", error.message);
+      } else {
+        Swal.fire({
+          icon: "success",
+          title: "Success",
+          text: "Added to watchlist",
+          confirmButtonText: "OK",
+        });
+        console.log("Added to watchlist:", data);
+      }
+      setStocks(true);
+    } catch (error) {
+      console.error("Error adding to watchlist:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCheckWatchlist = async () => {
+    const user = await supabase.auth.getUser();
+    if (!user.data?.user) {
+      console.error("User not authenticated");
+      return;
+    }
+    const { data, error } = await supabase
+      .from("watchlist")
+      .select("*")
+      .eq("stock_symbol", symbol)
+      .eq("userId", user.data.user.id);
+    if (error) {
+      console.error("Error fetching watchlist:", error.message);
+    } else {
+      if (data.length > 0) {
+        setStocks(true);
+      } else {
+        setStocks(false);
+      }
+    }
+  };
+
+  const handleRemoveFromWatchlist = async () => {
+    setLoading(true);
+    try {
+      const user = await supabase.auth.getUser();
+      if (!user.data?.user) {
+        console.error("User not authenticated");
+        return;
+      }
+      const { data, error } = await supabase
+        .from("watchlist")
+        .delete()
+        .eq("stock_symbol", symbol)
+        .eq("userId", user.data.user.id);
+      if (error) {
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: error.message,
+          confirmButtonText: "OK",
+        });
+        console.error("Error removing from watchlist:", error.message);
+      } else {
+        Swal.fire({
+          icon: "success",
+          title: "Success",
+          text: "Removed from watchlist",
+          confirmButtonText: "OK",
+        });
+        setStocks(false);
+        console.log("Removed from watchlist:", data);
+      }
+    } catch (error) {
+      console.error("Error removing from watchlist:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  React.useEffect(() => {
+    handleCheckWatchlist();
+  }, [symbol]);
+
   return (
     <>
       <div className=" min-h-screen select-none">
@@ -158,55 +215,156 @@ export default function StockPage() {
                 </h1>
                 <TradingviewWidget symbol={symbol || "Composite"} />
               </div>
-              <div className="flex p-8 lg:p-12 w-full  border-2  bg-white shadow-md lg:h-40 mt-4  justify-between rounded-3xl">
-                <div className="flex flex-col items-center lg:text-lg">
-                  <p>Market Cap</p>
-                  <p className="font-bold">{formatMarketCap(BMRI.marketCap)}</p>
-                </div>
-                <div className="flex flex-col items-center lg:text-lg">
-                  <p>52W High</p>
-                  <p className="font-bold">{BMRI.fiftyTwoWeekHigh}</p>
-                </div>
-                <div className="flex flex-col items-center lg:text-lg">
-                  <p>52W Low</p>
-                  <p className="font-bold">{BMRI.fiftyTwoWeekLow}</p>
-                </div>
-                <div className="flex flex-col items-center lg:text-lg">
-                  <p>PBV</p>
-                  <p className="font-bold">{BMRI.priceToBook.toFixed(2)}</p>
-                </div>
+              <div className="flex p-8 lg:p-12 w-full border-2 bg-white shadow-md lg:h-40 mt-4 justify-between rounded-3xl">
+                {stockData ? (
+                  <>
+                    <div className="flex flex-col items-center lg:text-lg">
+                      <p>Market Cap</p>
+                      <p className="font-bold">
+                        {formatMarketCap(stockData.marketCap)}
+                      </p>
+                    </div>
+                    <div className="flex flex-col items-center lg:text-lg">
+                      <p>52W High</p>
+                      <p className="font-bold">{stockData.fiftyTwoWeekHigh}</p>
+                    </div>
+                    <div className="flex flex-col items-center lg:text-lg">
+                      <p>52W Low</p>
+                      <p className="font-bold">{stockData.fiftyTwoWeekLow}</p>
+                    </div>
+                    <div className="flex flex-col items-center lg:text-lg">
+                      <p>PBV</p>
+                      <p className="font-bold">
+                        {stockData.priceToBook?.toFixed(2)}
+                      </p>
+                    </div>
+                  </>
+                ) : (
+                  <p className="text-center text-lg">Loading stock data...</p>
+                )}
               </div>
             </div>
             <div className="lg:w-2/6 lg:h-[79vh]  max-w-screen-xl mt-8 lg:mt-0 rounded-3xl flex flex-col">
+              {stocks === null ? (
+                <p className="mt-12 mb-4 text-center">Loading...</p>
+              ) : stocks ? (
+                <Button
+                  className="h-12 bg-red-700 lg:mt-12 mb-4  cursor-pointer"
+                  onClick={handleRemoveFromWatchlist}
+                  disabled={loading}
+                >
+                  - Remove from Watchlist
+                </Button>
+              ) : (
+                <Button
+                  className="h-12 bg-teal-700 lg:mt-12 mb-4 cursor-pointer"
+                  onClick={handleAddToWatchlist}
+                  disabled={loading}
+                >
+                  + Add to Watchlist
+                </Button>
+              )}
+
               <h1 className="font-bold text-2xl mb-4 ">AI Prediction</h1>
               <div className="flex flex-col gap-y-4">
-                <div className=" w-full bg-white border-2 p-4 rounded-lg ">
-                  <p>Short Term Forecast (7Days)</p>
-                  <p>Confidence Score</p>
-                  <div className="flex justify-center items-center gap-x-4">
-                    <Progress value={50} />
-                    <p>50%</p>
+                {predictionData && predictionData.shortTerm ? (
+                  <div className="w-full bg-white border-2 p-4 rounded-lg">
+                    <p>Short Term Forecast (7 Days)</p>
+                    <p>Confidence Score</p>
+                    <div className="flex justify-center items-center gap-x-4">
+                      <Progress
+                        value={parseFloat(
+                          (
+                            Number(
+                              predictionData.shortTerm.accuracy.correlation
+                            ) * 100
+                          ).toFixed(0)
+                        )}
+                      />
+                      <p>
+                        {(
+                          Number(
+                            predictionData.shortTerm.accuracy.correlation
+                          ) * 100
+                        ).toFixed(0)}
+                        %
+                      </p>
+                    </div>
+                    <p className="text-2xl font-bold">
+                      {new Intl.NumberFormat("id-ID").format(
+                        predictionData.shortTerm.predictedPrice.toFixed(0)
+                      )}
+                    </p>
                   </div>
-                  <p className="text-2xl font-bold">4.834</p>
-                </div>
-                <div className=" w-full bg-white border-2 p-4 rounded-lg ">
-                  <p>Short Term Forecast (7Days)</p>
-                  <p>Confidence Score</p>
-                  <div className="flex justify-center items-center gap-x-4">
-                    <Progress value={50} />
-                    <p>50%</p>
+                ) : (
+                  <p>Loading Short Term Prediction...</p>
+                )}
+
+                {/* Mid Term Prediction */}
+                {predictionData && predictionData.midTerm ? (
+                  <div className="w-full bg-white border-2 p-4 rounded-lg">
+                    <p>Mid Term Forecast (20 Days)</p>
+                    <p>Confidence Score</p>
+                    <div className="flex justify-center items-center gap-x-4">
+                      <Progress
+                        value={parseFloat(
+                          (
+                            Number(
+                              predictionData.midTerm.accuracy.correlation
+                            ) * 100
+                          ).toFixed(0)
+                        )}
+                      />
+                      <p>
+                        {(
+                          Number(predictionData.midTerm.accuracy.correlation) *
+                          100
+                        ).toFixed(0)}
+                        %
+                      </p>
+                    </div>
+                    <p className="text-2xl font-bold">
+                      {new Intl.NumberFormat("id-ID").format(
+                        predictionData.midTerm.predictedPrice.toFixed(0)
+                      )}
+                    </p>
                   </div>
-                  <p className="text-2xl font-bold">4.834</p>
-                </div>
-                <div className=" w-full bg-white border-2 p-4 rounded-lg ">
-                  <p>Short Term Forecast (7Days)</p>
-                  <p>Confidence Score</p>
-                  <div className="flex justify-center items-center gap-x-4">
-                    <Progress value={50} />
-                    <p>50%</p>
+                ) : (
+                  <p>Loading Mid Term Prediction...</p>
+                )}
+
+                {/* Long Term Prediction */}
+                {predictionData && predictionData.longTerm ? (
+                  <div className="w-full bg-white border-2 p-4 rounded-lg">
+                    <p>Long Term Forecast (&gt;50 Days)</p>
+                    <p>Confidence Score</p>
+                    <div className="flex justify-center items-center gap-x-4">
+                      <Progress
+                        value={parseFloat(
+                          (
+                            Number(
+                              predictionData.longTerm.accuracy.correlation
+                            ) * 100
+                          ).toFixed(0)
+                        )}
+                      />
+                      <p>
+                        {(
+                          Number(predictionData.longTerm.accuracy.correlation) *
+                          100
+                        ).toFixed(0)}
+                        %
+                      </p>
+                    </div>
+                    <p className="text-2xl font-bold">
+                      {new Intl.NumberFormat("id-ID").format(
+                        predictionData.longTerm.predictedPrice.toFixed(0)
+                      )}
+                    </p>
                   </div>
-                  <p className="text-2xl font-bold">4.834</p>
-                </div>
+                ) : (
+                  <p>Loading Long Term Prediction...</p>
+                )}
               </div>
             </div>
           </div>
