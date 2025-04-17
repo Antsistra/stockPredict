@@ -16,7 +16,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import supabase from "@/lib/supabase";
 import { useState } from "react";
 import Swal from "sweetalert2";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 const loginFormSchema = z.object({
   email: z.string().email("Invalid email address"),
   password: z.string().min(6, "Password must be at least 6 characters"),
@@ -108,6 +108,9 @@ export function LoginForm() {
                 );
               }}
             />
+            <h1 className="text-sm text-right">
+              <Link to="/forgot-password">Forgot Password?</Link>
+            </h1>
             <Button type="submit" className="w-full hover:cursor-pointer">
               Login
             </Button>

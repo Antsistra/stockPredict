@@ -11,10 +11,11 @@ import {
 import supabase from "@/lib/supabase";
 import { ChartCandlestick } from "lucide-react";
 import { useEffect } from "react";
-
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
 import { useState } from "react";
+import { ThemeToggle } from "@/components/ThemeToggle";
+
 export default function Navbar() {
   const [name, setName] = useState<string | null>(null);
   const navigate = useNavigate();
@@ -62,36 +63,50 @@ export default function Navbar() {
           </div>
           StockPredict
         </a>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Avatar className="cursor-pointer border-2 ">
-              <AvatarImage src="https://github.com/shadcn.png" />
-              <AvatarFallback>CN</AvatarFallback>
-            </Avatar>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-56 c">
-            <DropdownMenuLabel>{name}</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <DropdownMenuItem className="cursor-pointer">
-                Settings
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
+        <div className="flex items-center gap-4">
+          <ThemeToggle />
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Avatar className="cursor-pointer border-2 ">
+                <AvatarFallback className="bg-red-400">HN</AvatarFallback>
+              </Avatar>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56 bg-white dark:bg-gray-800">
+              <DropdownMenuLabel className="text-gray-900 dark:text-white">
+                {name}
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuGroup>
+                <Link to="/setting">
+                  <DropdownMenuItem className="cursor-pointer text-gray-900 dark:text-white">
+                    Settings
+                  </DropdownMenuItem>
+                </Link>
+              </DropdownMenuGroup>
 
-            <DropdownMenuSeparator />
-            <DropdownMenuItem className="cursor-pointer">
-              GitHub
-            </DropdownMenuItem>
-            <DropdownMenuItem className="cursor-pointer">
-              Support
-            </DropdownMenuItem>
-            <DropdownMenuItem disabled>API</DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem className="cursor-pointer" onClick={handleLogout}>
-              Log out
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem className="cursor-pointer text-gray-900 dark:text-white">
+                GitHub
+              </DropdownMenuItem>
+              <DropdownMenuItem className="cursor-pointer text-gray-900 dark:text-white">
+                Support
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                disabled
+                className="text-gray-500 dark:text-gray-400"
+              >
+                API
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                className="cursor-pointer text-gray-900 dark:text-white"
+                onClick={handleLogout}
+              >
+                Log out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
     </nav>
   );

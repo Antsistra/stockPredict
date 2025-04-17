@@ -2,6 +2,7 @@ import supabase from "@/lib/supabase";
 import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { Outlet } from "react-router-dom";
+import LoadingPage from "@/components/fragments/LoadingPage";
 
 const ProtectedRoute = () => {
   const [user, setUser] = useState<any>(null);
@@ -14,17 +15,21 @@ const ProtectedRoute = () => {
     } else {
       setUser(data?.user);
     }
-    setLoading(false);
+    //test loading
+    setTimeout(() => {
+      setLoading(false);
+    }, 1500);
   };
 
   useEffect(() => {
     fetchUser();
   }, []);
 
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-  return user ? <Outlet /> : <Navigate to="/login" replace />;
+  return (
+    <LoadingPage isLoading={loading}>
+      {user ? <Outlet /> : <Navigate to="/login" replace />}
+    </LoadingPage>
+  );
 };
 
 export default ProtectedRoute;

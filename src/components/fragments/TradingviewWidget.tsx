@@ -1,50 +1,85 @@
 // TradingViewWidget.jsx
-import { useEffect, useRef, memo } from "react";
+import React, { useEffect, useRef, memo } from 'react';
+import { useTheme } from "@/context/ThemeContext";
 
-function TradingViewWidget({ symbol }: { symbol: string }) {
-  const container = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    // Cek apakah script sudah ada sebelumnya
-    const existingScript = document.querySelector(
-      'script[src="https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js"]'
-    );
-    if (!existingScript) {
-      const script = document.createElement("script");
-      script.src =
-        "https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js";
-      script.type = "text/javascript";
-      script.async = true;
-      script.innerHTML = `
-      {
-        "autosize": true,
-                 "symbol": "IDX:${symbol}",
-          "timezone": "Asia/Jakarta",
-        "interval": "D",
-        "timezone": "Asia/Jakarta",
-        "theme": "light",
-        "style": "3",
-        "locale": "en",
-        "allow_symbol_change": true,
-        "hide_volume": true,
-        "support_host": "https://www.tradingview.com"
-      }`;
-      container.current?.appendChild(script);
-    }
-  }, []);
-
-  return (
-    <div
-      className="tradingview-widget-container"
-      ref={container}
-      style={{ height: "100%", width: "100%" }}
-    >
-      <div
-        className="tradingview-widget-container__widget"
-        style={{ height: "calc(100% - 32px)", width: "100%" }}
-      ></div>
-    </div>
-  );
+interface TradingviewWidgetProps {
+  symbol: string;
 }
 
-export default memo(TradingViewWidget);
+const TradingviewWidget = ({ symbol }: TradingviewWidgetProps) => {
+  const container = useRef<HTMLDivElement>(null);
+  const { isDarkMode } = useTheme();
+
+  useEffect(() => {
+    // Remove existing script
+    const existingScript = document.querySelector('script[src="https://s3.tradingview.com/external-embedding/embed-widget-symbol-overview.js"]');
+    if (existingScript) {
+      existingScript.remove();
+    }
+
+    // Create new script
+    const script = document.createElement("script");
+    script.src = "https://s3.tradingview.com/external-embedding/embed-widget-symbol-overview.js";
+    script.type = "text/javascript";
+    script.async = true;
+    script.innerHTML = JSON.stringify({
+      "symbols": [
+        [
+          `IDX:${symbol}|1D`
+        ]
+      ],
+      "chartOnly": false,
+      "width": "100%",
+      "height": "100%",
+      "locale": "id",
+      "colorTheme": isDarkMode ? "dark" : "light",
+      "autosize": true,
+      "showVolume": false,
+      "showMA": false,
+      "hideDateRanges": false,
+      "hideMarketStatus": false,
+      "hideSymbolLogo": false,
+      "scalePosition": "right",
+      "scaleMode": "Normal",
+      "fontFamily": "-apple-system, BlinkMacSystemFont, Trebuchet MS, Roboto, Ubuntu, sans-serif",
+      "fontSize": "10",
+      "noTimeScale": false,
+      "valuesTracking": "1",
+      "changeMode": "price-and-percent",
+      "chartType": "area",
+      "maLineColor": "#2962FF",
+      "maLineWidth": 1,
+      "maLength": 9,
+      "headerFontSize": "medium",
+      "lineWidth": 2,
+      "lineType": 0,
+      "dateRanges": [
+        "1d|1",
+        "1m|30",
+        "3m|60",
+        "12m|1D",
+        "60m|1W",
+        "all|1M"
+      ]
+    });
+
+    if (container.current) {
+      container.current.appendChild(script);
+    }
+
+    return () => {
+      if (container.current) {
+        container.current.innerHTML = "";
+      }
+    };
+  }, [symbol, isDarkMode]);
+
+  return (
+    <div className="tradingview-widget-container" ref={container}>
+      <div className="tradingview-widget-container__widget"></div>
+     
+    </div>
+  );
+};
+
+export default memo(TradingviewWidget);

@@ -215,6 +215,7 @@ function RegisterForm() {
                 );
               }}
             />
+            
             <FormField
               control={control}
               name="confirmPassword"
